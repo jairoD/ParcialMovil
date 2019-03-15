@@ -14,6 +14,7 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
@@ -142,10 +143,30 @@ public class OmsFragment extends Fragment {
 
     public void setCenter(double latitude, double longitude){
         IMapController mapController = map.getController();
-        mapController.setZoom(9.5);
+
         GeoPoint newCenter = new GeoPoint(latitude, longitude);
+        System.out.println("GeoPoint: "+newCenter.toString());
         mapController.setCenter(newCenter);
+        //mapController.animateTo(newCenter);
+        try {
+            addMarker(newCenter);
+        }catch (Exception e){
+            System.out.println("Error al añadir marcador");
+        }
+
 
 
     }
+
+    public void addMarker(GeoPoint center){
+        Marker marker = new Marker(map);
+        marker.setPosition(center);
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        marker.setIcon(getResources().getDrawable(R.drawable.osm_ic_follow_me));
+        marker.setTitle("Usuario x");
+        map.getOverlays().clear();
+        map.getOverlays().add(marker);
+        map.invalidate();
+    }
+
 }

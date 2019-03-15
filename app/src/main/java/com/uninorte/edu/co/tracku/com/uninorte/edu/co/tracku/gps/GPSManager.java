@@ -44,7 +44,7 @@ public class GPSManager implements LocationListener {
                     getLastKnownLocation(LocationManager.GPS_PROVIDER);
             locationManager.
                     requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                    0, 30, this,
+                    10000, 0, this,
                     Looper.getMainLooper());
         }catch (Exception error){
 
@@ -54,6 +54,7 @@ public class GPSManager implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         caller.LocationReceived(location.getLatitude(),location.getLongitude());
+
     }
 
     @Override
@@ -70,4 +71,7 @@ public class GPSManager implements LocationListener {
     public void onProviderDisabled(String provider) {
 
     }
+
+
+
 }

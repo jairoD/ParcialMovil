@@ -6,6 +6,7 @@ import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.location.LocationListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -38,6 +39,8 @@ import com.uninorte.edu.co.tracku.database.core.TrackUDatabaseManager;
 import com.uninorte.edu.co.tracku.database.entities.User;
 import com.uninorte.edu.co.tracku.networking.WebServiceManager;
 import com.uninorte.edu.co.tracku.networking.WebServiceManagerInterface;
+
+import org.osmdroid.util.GeoPoint;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -336,6 +339,8 @@ public class MainActivity extends AppCompatActivity
     public void LocationReceived(double latitude, double longitude) {
         this.latitude=latitude;
         this.longitude=longitude;
+        System.out.println("Latitud: "+latitude);
+        System.out.println("Longitud: "+longitude);
         ((TextView)findViewById(R.id.latitude_value)).setText(latitude+"");
         ((TextView)findViewById(R.id.longitude_value)).setText(longitude+"");
         if(googleMap!=null){
@@ -351,6 +356,8 @@ public class MainActivity extends AppCompatActivity
         }
         if(omsFragment!=null)
             omsFragment.setCenter(latitude,longitude);
+
+
     }
 
     @Override
@@ -377,4 +384,5 @@ public class MainActivity extends AppCompatActivity
             }
         });
     }
+
 }
