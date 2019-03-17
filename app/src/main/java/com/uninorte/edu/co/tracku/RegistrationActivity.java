@@ -52,4 +52,11 @@ public class RegistrationActivity extends Activity implements View.OnClickListen
     public void onClick(View view) {
 
     }
+
+    @Override
+    public void onBackPressed()
+    {
+        finish();
+        super.onBackPressed();  // optional depending on your needs
+    }
 }

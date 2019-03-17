@@ -2,16 +2,19 @@ package com.uninorte.edu.co.tracku;
 
 import android.Manifest;
 import android.app.Activity;
+import android.arch.persistence.db.SupportSQLiteDatabase;
 import android.arch.persistence.room.Room;
+import android.arch.persistence.room.RoomDatabase;
+import android.arch.persistence.room.migration.Migration;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.location.LocationListener;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
@@ -26,7 +29,6 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.clans.fab.FloatingActionButton;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -36,14 +38,19 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.uninorte.edu.co.tracku.com.uninorte.edu.co.tracku.gps.GPSManager;
 import com.uninorte.edu.co.tracku.com.uninorte.edu.co.tracku.gps.GPSManagerInterface;
 import com.uninorte.edu.co.tracku.database.core.TrackUDatabaseManager;
+import com.uninorte.edu.co.tracku.database.entities.Ubicacion;
 import com.uninorte.edu.co.tracku.database.entities.User;
 import com.uninorte.edu.co.tracku.networking.WebServiceManager;
 import com.uninorte.edu.co.tracku.networking.WebServiceManagerInterface;
 
-import org.osmdroid.util.GeoPoint;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
@@ -65,12 +72,13 @@ public class MainActivity extends AppCompatActivity
                 if (INSTANCE == null) {
                     INSTANCE= Room.databaseBuilder(context,
                             TrackUDatabaseManager.class, "database-tracku").
-                            allowMainThreadQueries().build();
+                            allowMainThreadQueries().addMigrations(TrackUDatabaseManager.MIGRATION_2_3).build();
                 }
             }
         }
         return INSTANCE;
     }
+
 
     public boolean userAuth(String userName,String password){
         try{
@@ -86,6 +94,23 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(this,error.getMessage(),Toast.LENGTH_LONG).show();
         }
         return false;
+    }
+
+    public boolean userUbicacion(double latitude, double longitud,String userName, Date date, Boolean sinc){
+        try {
+            Ubicacion newUbicacion = new Ubicacion();
+            newUbicacion.email = userName;
+            newUbicacion.latitud = String.valueOf(latitude);
+            newUbicacion.longitud = String.valueOf(longitud);
+            newUbicacion.startTime = date;
+            newUbicacion.sincronizado = sinc;
+            INSTANCE.ubicacionDao().insertUbicacion(newUbicacion);
+
+        }catch (Exception e){
+            Toast.makeText(this,e.getMessage(),Toast.LENGTH_LONG).show();
+            return false;
+        }
+        return true;
     }
 
     public boolean userRegistration(String userName,String password){
@@ -120,27 +145,49 @@ public class MainActivity extends AppCompatActivity
         return "";
     }
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         checkPermissions();
+
         getDatabase(this);
 
         String callType=getIntent().getStringExtra("callType");
         if(callType.equals("userLogin")) {
             String userName = getIntent().getStringExtra("userName");
             String password = getIntent().getStringExtra("password");
-
+            if(checkConnection()){
+                Toast.makeText(this, "Conexion a internet, webservice no implementado", Toast.LENGTH_LONG).show();
+                finish();
+            }
+            else{
+                Toast.makeText(this, "Conexion a internet no activa, login roomDatabase", Toast.LENGTH_LONG).show();
+                if (!userAuth(userName, password)) {
+                    Toast.makeText(this, "User not found!", Toast.LENGTH_LONG).show();
+                    finish();
+                }
+            }
+            /*
             if (!userAuth(userName, password)) {
                 Toast.makeText(this, "User not found!", Toast.LENGTH_LONG).show();
                 finish();
             }
-
+            */
 
         }else if(callType.equals("userRegistration")) {
             String userName = getIntent().getStringExtra("userName");
             String password = getIntent().getStringExtra("password");
+            /*
+            if (checkConnection()){
+                Toast.makeText(this, "Operacion registro webservice y esperar respuesta", Toast.LENGTH_LONG).show();
+                finish();
+            }
+            else{
+                Toast.makeText(this, "No hay conexion a internet para completar el registro", Toast.LENGTH_LONG).show();
+                finish();
+            }*/
 
             if (!userRegistration( userName, password)) {
                 Toast.makeText(this, "Error while registering user!", Toast.LENGTH_LONG).show();
@@ -149,9 +196,11 @@ public class MainActivity extends AppCompatActivity
                 Toast.makeText(this, "User registered!", Toast.LENGTH_LONG).show();
                 finish();
             }
+
         }else{
             finish();
         }
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -212,12 +261,23 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    boolean checkConnection(){
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
+            finish();
             super.onBackPressed();
         }
     }
@@ -341,6 +401,17 @@ public class MainActivity extends AppCompatActivity
         this.longitude=longitude;
         System.out.println("Latitud: "+latitude);
         System.out.println("Longitud: "+longitude);
+        //LocalDateTime myDateObj = LocalDateTime.now();
+        //DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        //String formattedDate = myDateObj.format(myFormatObj);
+        //System.out.println(formattedDate);
+        Date date = new Date();
+        if (!userUbicacion(latitude,longitude,"User1",date, false)){
+            Toast.makeText(this, "Error al registrar ubicacion", Toast.LENGTH_SHORT).show();
+        }else{
+            //List<Ubicacion> ubicacions = INSTANCE.ubicacionDao().getUserByEmail("User1");
+            Toast.makeText(this, "Ubicacion registrada", Toast.LENGTH_SHORT).show();
+        }
         ((TextView)findViewById(R.id.latitude_value)).setText(latitude+"");
         ((TextView)findViewById(R.id.longitude_value)).setText(longitude+"");
         if(googleMap!=null){

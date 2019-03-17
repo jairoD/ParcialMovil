@@ -1,11 +1,15 @@
 package com.uninorte.edu.co.tracku;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class LoginActivity extends Activity implements View.OnClickListener {
 
@@ -24,6 +28,8 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         });
 
     }
+
+
 
     @Override
     protected void onResume() {
@@ -51,7 +57,15 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             intentToBeCalled.putExtra("password",password);
             intentToBeCalled.setClass(this,MainActivity.class);
             startActivity(intentToBeCalled);
+
         }
 
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        finish();
+        super.onBackPressed();  // optional depending on your needs
     }
 }
