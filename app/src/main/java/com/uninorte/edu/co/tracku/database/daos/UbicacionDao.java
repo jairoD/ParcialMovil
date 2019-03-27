@@ -18,6 +18,8 @@ public interface UbicacionDao {
     @Query("select * from ubicacion where email=:email")
     List<Ubicacion> getUserByEmail(String  email);
 
+    @Query("select * from ubicacion where sincronizado=:sinc and email=:user")
+    List<Ubicacion> notSincUsers(int sinc, String user);
 
     @Insert
     void insertUbicacion(Ubicacion ubicacion);

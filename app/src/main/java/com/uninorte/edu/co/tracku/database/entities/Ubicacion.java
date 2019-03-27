@@ -26,12 +26,18 @@ public class Ubicacion {
     public String email;
 
     @ColumnInfo(name="latitud")
-    public String latitud;
+    public double latitud;
 
     @ColumnInfo(name="longitud")
-    public String longitud;
+    public double longitud;
 
     @ColumnInfo(name="sincronizado")
-    public boolean sincronizado;
+    public int sincronizado;
+
+    @ColumnInfo(name="fecha")
+    public String fecha;
+
+    @ColumnInfo(name="hora")
+    public String hora;
 
 }

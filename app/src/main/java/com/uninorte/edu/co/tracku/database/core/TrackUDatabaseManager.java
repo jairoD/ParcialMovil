@@ -12,7 +12,7 @@ import com.uninorte.edu.co.tracku.database.daos.UbicacionDao;
 import com.uninorte.edu.co.tracku.database.entities.Ubicacion;
 import com.uninorte.edu.co.tracku.database.entities.User;
 
-@Database(entities = {User.class, Ubicacion.class},version = 3)
+@Database(entities = {User.class, Ubicacion.class},version = 5)
 public abstract class TrackUDatabaseManager extends RoomDatabase {
     public abstract UserDao userDao();
     public abstract UbicacionDao ubicacionDao();

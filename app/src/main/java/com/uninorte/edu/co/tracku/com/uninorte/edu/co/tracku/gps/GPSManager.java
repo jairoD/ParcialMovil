@@ -44,7 +44,7 @@ public class GPSManager implements LocationListener {
                     getLastKnownLocation(LocationManager.GPS_PROVIDER);
             locationManager.
                     requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                    30000, 0, this,
+                    0, 30, this,
                     Looper.getMainLooper());
         }catch (Exception error){
 

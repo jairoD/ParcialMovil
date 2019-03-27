@@ -68,4 +68,12 @@
         android:id="@+id/google_maps_control"
         ></fragment>
 
+<!--
+    <fragment
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:name="com.uninorte.edu.co.tracku.OmsFragment"
+        tools:context=".MainActivity"
+        android:id="@+id/map_control"></fragment>
+        -->
 </LinearLayout>

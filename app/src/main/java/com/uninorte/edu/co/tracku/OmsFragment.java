@@ -1,6 +1,8 @@
 package com.uninorte.edu.co.tracku;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -18,6 +20,9 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -32,6 +37,9 @@ public class OmsFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    List<userMarker> users = new ArrayList<>();
+    List<userMarker> usersRoute = new ArrayList<>();
+
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -141,33 +149,106 @@ public class OmsFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
-    public void setCenter(double latitude, double longitude){
+    public void setCenter(double latitude, double longitude, String usuario){
         IMapController mapController = map.getController();
-
         GeoPoint newCenter = new GeoPoint(latitude, longitude);
-        System.out.println("GeoPoint: "+newCenter.toString());
         mapController.setCenter(newCenter);
         //mapController.animateTo(newCenter);
-        try {
-            addMarker(newCenter);
-        }catch (Exception e){
-            System.out.println("Error al añadir marcador");
+        if(!users.isEmpty()){
+            for (int i = 0; i <users.size() ; i++) {
+                if(users.get(i).usuario.equals(usuario)){
+                    userMarker replace = new userMarker();
+                    replace.usuario = usuario;
+                    replace.estado = 1;
+                    replace.latitud = latitude;
+                    replace.longitud = longitude;
+                    users.set(i,replace);
+                }
+            }
         }
-
-
-
+        try {
+            addMarker(newCenter, usuario);
+        }catch (Exception e){
+            System.out.println("Excepcion marcador: " +e);
+        }
     }
 
-    public void addMarker(GeoPoint center){
+    public void usersMarker(){
+        map.getOverlays().clear();
+        for (int i = 0; i < users.size(); i++) {
+            try{
+                GeoPoint geoPoint = new GeoPoint(users.get(i).latitud,users.get(i).longitud);
+                Marker marker = new Marker(map);
+                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                marker.setIcon(getResources().getDrawable(R.drawable.osm_ic_follow_me));
+                String title = users.get(i).usuario;
+                if(users.get(i).estado == 1){
+                    title = title + "," + "activo";
+                }
+                else{
+                    title = title + "," + "inactivo";
+                }
+                marker.setTitle(title);
+                marker.setPosition(geoPoint);
+                map.getOverlays().add(marker);
+            }
+            catch (Exception e){
+                System.out.println("Excepcion marcador: " +e);
+            }
+        }
+        map.invalidate();
+    }
+
+    public void usersRoute(){
+        map.getOverlays().clear();
+        for (int i = 0; i < usersRoute.size(); i++) {
+            try{
+                GeoPoint geoPoint = new GeoPoint(usersRoute.get(i).latitud,usersRoute.get(i).longitud);
+                Marker marker = new Marker(map);
+                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                marker.setIcon(getResources().getDrawable(R.drawable.osm_ic_follow_me));
+                String title = usersRoute.get(i).usuario + "," + usersRoute.get(i).fecha;
+                marker.setTitle(title);
+                marker.setPosition(geoPoint);
+                map.getOverlays().add(marker);
+            }
+            catch (Exception e){
+                System.out.println("Excepcion marcador: " +e);
+            }
+        }
+        map.invalidate();
+    }
+
+    public void addMarker(GeoPoint center, String usuario){
         Marker marker = new Marker(map);
         marker.setPosition(center);
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         marker.setIcon(getResources().getDrawable(R.drawable.osm_ic_follow_me));
-        marker.setTitle("Usuario x");
+        marker.setTitle(usuario);
         map.getOverlays().clear();
         map.getOverlays().add(marker);
+        for (int i = 0; i < users.size(); i++) {
+            try{
+                GeoPoint geoPoint = new GeoPoint(users.get(i).latitud,users.get(i).longitud);
+                Marker marker1 = new Marker(map);
+                marker1.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                marker1.setIcon(getResources().getDrawable(R.drawable.osm_ic_follow_me));
+                String title = users.get(i).usuario;
+                if(users.get(i).estado == 1){
+                    title = title + "," + "activo";
+                }
+                else{
+                    title = title + "," + "inactivo";
+                }
+                marker1.setTitle(title);
+                marker1.setPosition(geoPoint);
+                map.getOverlays().add(marker1);
+            }
+            catch (Exception e){
+                System.out.println("Excepcion marcador: " +e);
+            }
+        }
         map.invalidate();
     }
-
 
 }
